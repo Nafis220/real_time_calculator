@@ -1,0 +1,20 @@
+{
+  "name": "real_time_calculator",
+  "version": "1.0.0",
+  "description": "An application that calculate and show the result in real time",
+  "main": "server.js",
+  "scripts": {
+    "type": "module",
+    "start": "nodemon  server.mjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Nafis Fuad",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
