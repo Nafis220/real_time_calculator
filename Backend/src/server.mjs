@@ -30,15 +30,12 @@ io.on("connection", (socket) => {
       let secondsElapsed = 0;
 
       const intervalId = setInterval(() => {
-        console.log("Sending message:");
-
-        // Send the message to the client
         const result = taskOneCalculation(balance, asset);
         socket.emit("receives-numbers", { result });
 
         secondsElapsed++;
         if (secondsElapsed >= 5) {
-          clearInterval(intervalId); // Stop the interval after five seconds
+          clearInterval(intervalId);
         }
       }, 1000);
     }

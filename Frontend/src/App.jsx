@@ -4,12 +4,10 @@ const socket = io.connect("http://localhost:3000");
 const App = () => {
   const [balance, setBalance] = useState({ balance: 0, asset: 0 });
   const [balanceReceive, setbalanceReceive] = useState([]);
-  const [stopReceiving, setStopReceiving] = useState(false); // State to control receiving
-  const balanceRef = useRef({ balance: 0, asset: 0 }); // Ref to hold the latest balance
-
+  const [stopReceiving, setStopReceiving] = useState(false);
+  const balanceRef = useRef({ balance: 0, asset: 0 });
   const stopReceivingNumbers = () => {
     setStopReceiving(true);
-    console.log("click", stopReceiving);
   };
 
   const sendNumber = () => {
@@ -19,14 +17,12 @@ const App = () => {
   useEffect(() => {
     socket.on("receives-numbers", (data) => {
       if (!stopReceiving) {
-        setbalanceReceive((prevNumbers) => [...prevNumbers, data.result]); // Add the received number to the array
-        balanceRef.current = balance; // Update the balanceRef with the latest balance
+        setbalanceReceive((prevNumbers) => [...prevNumbers, data.result]);
+        balanceRef.current = balance;
       }
     });
   }, []);
-  useEffect(() => {
-    console.log(balanceReceive);
-  });
+  useEffect(() => {});
   return (
     <div>
       <input
@@ -56,7 +52,7 @@ const App = () => {
 
       <button onClick={stopReceivingNumbers}>Stop</button>
       {balanceReceive.map((number, index) => (
-        <h3 key={index}>{number}</h3> // Render received numbers
+        <h3 key={index}>{number}</h3>
       ))}
     </div>
   );
