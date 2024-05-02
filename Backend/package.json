@@ -5,14 +5,17 @@
   "main": "server.js",
   "scripts": {
     "type": "module",
-    "start": "nodemon  server.mjs",
+    "start": "nodemon  src/server.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Nafis Fuad",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "mongoose": "^8.3.3",
+    "socket.io": "^4.7.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
