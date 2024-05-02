@@ -28,6 +28,7 @@ const App = () => {
       <input
         type='number'
         name='balance'
+        placeholder='Hasan Balance'
         onChange={(event) =>
           setBalance((prevState) => ({
             ...prevState,
@@ -36,6 +37,7 @@ const App = () => {
         }
       />
       <input
+        placeholder='asset'
         name='asset'
         type='number'
         onChange={(event) =>
