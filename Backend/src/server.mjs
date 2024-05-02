@@ -39,6 +39,33 @@ io.on("connection", (socket) => {
       }
     }, 1000);
   });
+
+  // Function to send count data to the client
+  let intervalId; // Declare intervalId outside of the functions
+  let count = 0;
+  let balance = 1000;
+  const sendCountData = () => {
+    intervalId = setInterval(() => {
+      let calculation = balance / 500;
+
+      socket.emit("balance-count", balance, calculation);
+      if (count >= 4) {
+        clearInterval(intervalId);
+      } else {
+        count++;
+      }
+    }, 1000);
+  };
+
+  sendCountData();
+
+  socket.on("send-balance", (updatedCount) => {
+    clearInterval(intervalId);
+
+    balance = updatedCount;
+
+    sendCountData(); // Resume sending count data every second
+  });
 });
 
 connectDB()
