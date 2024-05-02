@@ -17,12 +17,15 @@ const App = () => {
   useEffect(() => {
     socket.on("receives-numbers", (data) => {
       if (!stopReceiving) {
-        setbalanceReceive((prevNumbers) => [...prevNumbers, data.result]);
-        balanceRef.current = balance;
+        setbalanceReceive((prev) => [...prev, data.result]);
+        balanceRef.current = data.result;
       }
     });
-  }, []);
-  useEffect(() => {});
+    return () => {
+      socket.off("receives-numbers");
+    };
+  }, [stopReceiving]);
+
   return (
     <div>
       <input

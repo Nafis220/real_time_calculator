@@ -26,20 +26,18 @@ io.on("connection", (socket) => {
   console.log(`User Connected ${socket.id}`);
   socket.on("send-message", (data) => {
     const { balance, asset } = data.balance;
-    function sendMessageRepeatedly(balance, asset) {
-      let secondsElapsed = 0;
 
-      const intervalId = setInterval(() => {
-        const result = taskOneCalculation(balance, asset);
-        socket.emit("receives-numbers", { result });
+    let secondsElapsed = 0;
 
-        secondsElapsed++;
-        if (secondsElapsed >= 5) {
-          clearInterval(intervalId);
-        }
-      }, 1000);
-    }
-    sendMessageRepeatedly(balance, asset);
+    const intervalId = setInterval(() => {
+      const result = taskOneCalculation(balance, asset);
+      socket.emit("receives-numbers", { result });
+
+      secondsElapsed++;
+      if (secondsElapsed >= 5) {
+        clearInterval(intervalId);
+      }
+    }, 1000);
   });
 });
 
