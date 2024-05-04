@@ -9,7 +9,7 @@ import { taskOneCalculation } from "./services/taskOne.services.mjs";
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "http://localhost:5173", method: ["GET", "POST"] },
+  cors: { origin: "http://localhost:3001", method: ["GET", "POST"] },
 });
 dotenv.config({ path: "./.env" });
 
@@ -67,6 +67,72 @@ io.on("connection", (socket) => {
     sendCountData(); // Resume sending count data every second
   });
 });
+
+//  test
+
+//!schema
+//total balance
+//total asset
+//current rate
+// highest rate
+// lowest rate
+
+//! rate changer function
+//call this function when a client buy or sell asset using balance
+//call this function when profit increased ()
+// total && balance asset from db
+// increment or decrement given balance, asset and rate
+// save new balance asset or rate
+
+//! dynamically rate change function
+
+let highestNumber = 0;
+let lowestNumber = 10;
+let highestNumberArray = [];
+let lowestNUmberArray = [];
+
+function getTheLatestDBData() {
+  // get all the data from db here, the random data will be replaced by rate from database
+  let randomNumber = Math.random(); // current rate here
+
+  if (randomNumber < lowestNumber) {
+    lowestNumber = randomNumber;
+    lowestNUmberArray.push(lowestNumber);
+  }
+  if (randomNumber > highestNumber) {
+    highestNumber = randomNumber;
+    highestNumberArray.push(highestNumber);
+  }
+  return {
+    randomNumber: randomNumber,
+    highestNumberArray: highestNumberArray,
+
+    lowestNUmberArray: lowestNUmberArray,
+  };
+}
+
+setInterval(() => {
+  const storage = [];
+  setInterval(() => {
+    const result = getTheLatestDBData();
+    storage.push(result); // Store the result
+  }, 100); // Run myFunction() every millisecond
+
+  setTimeout(() => {
+    // update the fiveMinuteCandle Schema here
+    console.log({
+      lastNumber: storage[storage.length - 1].randomNumber,
+      highestNumber:
+        storage[storage.length - 1].highestNumberArray[
+          highestNumberArray.length - 1
+        ],
+      lowestNumber:
+        storage[storage.length - 1].lowestNUmberArray[
+          lowestNUmberArray.length - 1
+        ],
+    }); // Log the storage
+  }, 4999); // Return the storage after one second
+}, 5000); // Run the outer setInterval every second
 
 connectDB()
   .then(() => {

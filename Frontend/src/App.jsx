@@ -47,7 +47,7 @@ const App = () => {
   }, [stopReceiving]);
 
   return (
-    <div>
+    <div className='root'>
       <input
         type='number'
         name='balance'
@@ -72,7 +72,7 @@ const App = () => {
       />
       <button onClick={sendNumber}>Send Number</button>
       <h2>Balance we get</h2>
-      <button onClick={stopReceivingNumbers}>Stop</button>
+      <button onClick={stopReceivingNumbers}>Stop</button> <br />
       {balanceReceive.map((number, index) => (
         <h3 key={index}>{number}</h3>
       ))}
