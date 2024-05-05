@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const fiveMinuteSchema = mongoose.Schema(
   {
+    time: { type: Number, required: true },
     currentRate: { type: Number, required: [true, "current rate is required"] },
     highestRate: { type: Number, required: [true, "highest rate is required"] },
     lowestRate: { type: Number, required: [true, "lowest rate is required"] },

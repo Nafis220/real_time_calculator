@@ -5,8 +5,8 @@ import dotenv from "dotenv";
 import connectDB from "./DB/index.db.mjs";
 import cors from "cors";
 import calculatorRouter from "./routes/calculator.routes.mjs";
-import { taskOneCalculation } from "./services/taskOne.services.mjs";
 import FiveMinutesData from "./models/fiveMinute.model.mjs";
+import getTheLatestDBData from "./services/getLatestData.services.mjs";
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -26,65 +26,48 @@ const PORT = process.env.PORT;
 io.on("connection", (socket) => {
   console.log(`User Connected ${socket.id}`);
 
-  let highestNumber = 0;
-  let lowestNumber = 10;
-  let highestNumberArray = [];
-  let lowestNUmberArray = [];
-  let randomNumber = 0;
-  function getTheLatestDBData() {
-    // get all the data from db here, the random data will be replaced by rate from database
-    randomNumber = Math.random();
-    if (randomNumber < lowestNumber) {
-      lowestNumber = randomNumber;
-      lowestNUmberArray.push(lowestNumber);
-    }
-    if (randomNumber > highestNumber) {
-      highestNumber = randomNumber;
-      highestNumberArray.push(highestNumber);
-    }
-    return {
-      randomNumber: randomNumber,
-      highestNumberArray: highestNumberArray,
-      lowestNUmberArray: lowestNUmberArray,
-    };
-  }
-
   // Define startInterval function
-  const sendDatatoClientandDB = () => {
+
+  const sendDatatoClientandDB = (iteration) => {
     let i = 1;
+    let result = {};
     const intervalId = setInterval(async () => {
-      console.log("100ms", i);
-      if (i === 3000) {
+      if (i === iteration) {
         clearInterval(intervalId);
-        sendDatatoClientandDB(); // Start the interval again immediately
-        // send to database
-        await FiveMinutesData.create({
-          currentRate: randomNumber,
-          highestRate: highestNumber,
-          lowestRate: lowestNumber,
-        });
-        const fiveMinutesData = await FiveMinutesData.find();
-        socket.emit("five-minute-data", {
-          fiveMinutesData,
-        });
+        sendDatatoClientandDB(iteration); // Start the interval again immediately
+        //send to database
+        try {
+          await FiveMinutesData.create({
+            time: iteration,
+            currentRate: result.randomNumber,
+            highestRate: result.highestNumberArray.at(-1),
+            lowestRate: result.lowestNUmberArray.at(-1),
+          });
+        } catch (error) {
+          console.log(error);
+        }
       } else {
         //check the change of balance of every 100ms from db
-        const result = getTheLatestDBData();
+        result = getTheLatestDBData();
 
         // send every 100ms data to client using socket
         socket.emit("100-ms-data", {
           result: result.randomNumber,
-          highestNumber:
-            result.highestNumberArray[highestNumberArray.length - 1],
-          lowestNumber: result.lowestNUmberArray[lowestNUmberArray.length - 1],
+          highestNumber: result.highestNumberArray.at(-1),
+          lowestNumber: result.lowestNUmberArray.at(-1),
         });
-
+        const fiveMinutesData = await FiveMinutesData.find({ time: iteration });
+        socket.emit("five-minute-data", {
+          fiveMinutesData,
+        });
         i++;
       }
     }, 100);
   };
 
-  sendDatatoClientandDB();
+  socket.on("timeToWatch", (data) => {
+    sendDatatoClientandDB(Number(data));
+  });
 });
 
 //!schema
