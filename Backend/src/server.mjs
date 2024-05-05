@@ -6,6 +6,7 @@ import connectDB from "./DB/index.db.mjs";
 import cors from "cors";
 import calculatorRouter from "./routes/calculator.routes.mjs";
 import { taskOneCalculation } from "./services/taskOne.services.mjs";
+import FiveMinutesData from "./models/fiveMinute.model.mjs";
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -24,51 +25,67 @@ const PORT = process.env.PORT;
 
 io.on("connection", (socket) => {
   console.log(`User Connected ${socket.id}`);
-  socket.on("send-message", (data) => {
-    const { balance, asset } = data.balance;
 
-    let secondsElapsed = 0;
+  let highestNumber = 0;
+  let lowestNumber = 10;
+  let highestNumberArray = [];
+  let lowestNUmberArray = [];
+  let randomNumber = 0;
+  function getTheLatestDBData() {
+    // get all the data from db here, the random data will be replaced by rate from database
+    randomNumber = Math.random();
+    if (randomNumber < lowestNumber) {
+      lowestNumber = randomNumber;
+      lowestNUmberArray.push(lowestNumber);
+    }
+    if (randomNumber > highestNumber) {
+      highestNumber = randomNumber;
+      highestNumberArray.push(highestNumber);
+    }
+    return {
+      randomNumber: randomNumber,
+      highestNumberArray: highestNumberArray,
+      lowestNUmberArray: lowestNUmberArray,
+    };
+  }
 
-    const intervalId = setInterval(() => {
-      const result = taskOneCalculation(balance, asset);
-      socket.emit("receives-numbers", { result });
-
-      secondsElapsed++;
-      if (secondsElapsed >= 5) {
+  // Define startInterval function
+  const sendDatatoClientandDB = () => {
+    let i = 1;
+    const intervalId = setInterval(async () => {
+      console.log("100ms", i);
+      if (i === 3000) {
         clearInterval(intervalId);
-      }
-    }, 1000);
-  });
-
-  // Function to send count data to the client
-  let intervalId; // Declare intervalId outside of the functions
-  let count = 0;
-  let balance = 1000;
-  const sendCountData = () => {
-    intervalId = setInterval(() => {
-      let calculation = balance / 500;
-
-      socket.emit("balance-count", balance, calculation);
-      if (count >= 4) {
-        clearInterval(intervalId);
+        sendDatatoClientandDB(); // Start the interval again immediately
+        // send to database
+        await FiveMinutesData.create({
+          currentRate: randomNumber,
+          highestRate: highestNumber,
+          lowestRate: lowestNumber,
+        });
+        const fiveMinutesData = await FiveMinutesData.find();
+        socket.emit("five-minute-data", {
+          fiveMinutesData,
+        });
       } else {
-        count++;
+        //check the change of balance of every 100ms from db
+        const result = getTheLatestDBData();
+
+        // send every 100ms data to client using socket
+        socket.emit("100-ms-data", {
+          result: result.randomNumber,
+          highestNumber:
+            result.highestNumberArray[highestNumberArray.length - 1],
+          lowestNumber: result.lowestNUmberArray[lowestNUmberArray.length - 1],
+        });
+
+        i++;
       }
-    }, 1000);
+    }, 100);
   };
 
-  sendCountData();
-
-  socket.on("send-balance", (updatedCount) => {
-    clearInterval(intervalId);
-
-    balance = updatedCount;
-
-    sendCountData(); // Resume sending count data every second
-  });
+  sendDatatoClientandDB();
 });
-
-//  test
 
 //!schema
 //total balance
@@ -84,55 +101,16 @@ io.on("connection", (socket) => {
 // increment or decrement given balance, asset and rate
 // save new balance asset or rate
 
-//! dynamically rate change function
+app.post("/timeChecker", async (req, res) => {
+  const { currentRate, highestRate, lowestRate } = req.body;
+  await FiveMinutesData.create({
+    currentRate: currentRate,
+    highestRate: highestRate,
+    lowestRate: lowestRate,
+  });
 
-let highestNumber = 0;
-let lowestNumber = 10;
-let highestNumberArray = [];
-let lowestNUmberArray = [];
-
-function getTheLatestDBData() {
-  // get all the data from db here, the random data will be replaced by rate from database
-  let randomNumber = Math.random(); // current rate here
-
-  if (randomNumber < lowestNumber) {
-    lowestNumber = randomNumber;
-    lowestNUmberArray.push(lowestNumber);
-  }
-  if (randomNumber > highestNumber) {
-    highestNumber = randomNumber;
-    highestNumberArray.push(highestNumber);
-  }
-  return {
-    randomNumber: randomNumber,
-    highestNumberArray: highestNumberArray,
-
-    lowestNUmberArray: lowestNUmberArray,
-  };
-}
-
-setInterval(() => {
-  const storage = [];
-  setInterval(() => {
-    const result = getTheLatestDBData();
-    storage.push(result); // Store the result
-  }, 100); // Run myFunction() every millisecond
-
-  setTimeout(() => {
-    // update the fiveMinuteCandle Schema here
-    console.log({
-      lastNumber: storage[storage.length - 1].randomNumber,
-      highestNumber:
-        storage[storage.length - 1].highestNumberArray[
-          highestNumberArray.length - 1
-        ],
-      lowestNumber:
-        storage[storage.length - 1].lowestNUmberArray[
-          lowestNUmberArray.length - 1
-        ],
-    }); // Log the storage
-  }, 4999); // Return the storage after one second
-}, 5000); // Run the outer setInterval every second
+  res.status(201).json("created");
+});
 
 connectDB()
   .then(() => {
