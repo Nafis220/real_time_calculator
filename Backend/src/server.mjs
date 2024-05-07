@@ -26,8 +26,6 @@ const PORT = process.env.PORT;
 io.on("connection", (socket) => {
   console.log(`User Connected ${socket.id}`);
 
-  // Define startInterval function
-
   const sendDataToClient = async (iteration) => {
     try {
       const result = getTheLatestDBData();
@@ -40,20 +38,24 @@ io.on("connection", (socket) => {
         startingNumber: result.startingNumberArray.at(0),
       });
 
-      const fiveMinutesData = await FiveMinutesData.find({ time: iteration });
+      const candleData = await FiveMinutesData.find({ time: iteration });
 
       // Send data to the client
-      socket.emit("five-minute-data", {
-        fiveMinutesData,
-      });
-      console.log("49");
+      if (iteration === 600) {
+        socket.emit("five-minute-data", {
+          candleData,
+        });
+      } else {
+        socket.emit("ten-minute-data", {
+          candleData,
+        });
+      }
     } catch (error) {
       console.log(error);
     }
   };
 
   const sendDataToDatabase = async (iteration) => {
-    console.log(iteration);
     try {
       const result = getTheLatestDBData();
 
@@ -104,8 +106,7 @@ io.on("connection", (socket) => {
   };
 
   socket.on("timeToWatch", (data) => {
-    console.log(data, "107");
-    if (data === 50) {
+    if (data === 600) {
       FiveMinutesendDatatoClientandDB(Number(data));
     } else {
       TenMinutesendDatatoClientandDB(Number(data));
