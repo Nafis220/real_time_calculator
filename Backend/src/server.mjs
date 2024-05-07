@@ -28,45 +28,88 @@ io.on("connection", (socket) => {
 
   // Define startInterval function
 
-  const sendDatatoClientandDB = (iteration) => {
+  const sendDataToClient = async (iteration) => {
+    try {
+      const result = getTheLatestDBData();
+
+      // Send data to the client using socket
+      socket.emit("100-ms-data", {
+        result: result.randomNumber,
+        highestNumber: result.highestNumberArray.at(-1),
+        lowestNumber: result.lowestNUmberArray.at(-1),
+        startingNumber: result.startingNumberArray.at(0),
+      });
+
+      const fiveMinutesData = await FiveMinutesData.find({ time: iteration });
+
+      // Send data to the client
+      socket.emit("five-minute-data", {
+        fiveMinutesData,
+      });
+      console.log("49");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const sendDataToDatabase = async (iteration) => {
+    console.log(iteration);
+    try {
+      const result = getTheLatestDBData();
+
+      // Send data to the database
+      await FiveMinutesData.create({
+        time: iteration,
+        currentRate: result.randomNumber,
+        highestRate: result.highestNumberArray.at(-1),
+        lowestRate: result.lowestNUmberArray.at(-1),
+        startingNumber: result.startingNumberArray.at(0),
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const FiveMinutesendDatatoClientandDB = async (iteration) => {
     let i = 1;
-    let result = {};
+
     const intervalId = setInterval(async () => {
       if (i === iteration) {
         clearInterval(intervalId);
-        sendDatatoClientandDB(iteration); // Start the interval again immediately
-        //send to database
-        try {
-          await FiveMinutesData.create({
-            time: iteration,
-            currentRate: result.randomNumber,
-            highestRate: result.highestNumberArray.at(-1),
-            lowestRate: result.lowestNUmberArray.at(-1),
-          });
-        } catch (error) {
-          console.log(error);
-        }
-      } else {
-        //check the change of balance of every 100ms from db
-        result = getTheLatestDBData();
 
-        // send every 100ms data to client using socket
-        socket.emit("100-ms-data", {
-          result: result.randomNumber,
-          highestNumber: result.highestNumberArray.at(-1),
-          lowestNumber: result.lowestNUmberArray.at(-1),
-        });
-        const fiveMinutesData = await FiveMinutesData.find({ time: iteration });
-        socket.emit("five-minute-data", {
-          fiveMinutesData,
-        });
+        sendDataToDatabase(iteration);
+        FiveMinutesendDatatoClientandDB(iteration);
+        //send to database
+      } else {
+        sendDataToClient(iteration);
+
         i++;
       }
-    }, 100);
+    }, 500);
+  };
+  const TenMinutesendDatatoClientandDB = async (iteration) => {
+    let i = 1;
+
+    const intervalId = setInterval(async () => {
+      if (i === iteration) {
+        clearInterval(intervalId);
+
+        await sendDataToDatabase(iteration);
+        TenMinutesendDatatoClientandDB(iteration);
+      } else {
+        await sendDataToClient(iteration);
+        i++;
+      }
+    }, 500);
   };
 
   socket.on("timeToWatch", (data) => {
-    sendDatatoClientandDB(Number(data));
+    console.log(data, "107");
+    if (data === 50) {
+      FiveMinutesendDatatoClientandDB(Number(data));
+    } else {
+      TenMinutesendDatatoClientandDB(Number(data));
+    }
   });
 });
 

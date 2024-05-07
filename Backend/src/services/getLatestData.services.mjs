@@ -1,11 +1,13 @@
 let highestNumber = 0;
 let lowestNumber = 10;
+let startingNumberArray = [];
 let highestNumberArray = [];
 let lowestNUmberArray = [];
-let randomNumber = 0;
+
 function getTheLatestDBData() {
   // get all the data from db here, the random data will be replaced by rate from database
-  randomNumber = Math.random();
+  let randomNumber = Math.random();
+  startingNumberArray.push(randomNumber);
   if (randomNumber < lowestNumber) {
     lowestNumber = randomNumber;
     lowestNUmberArray.push(lowestNumber);
@@ -18,6 +20,7 @@ function getTheLatestDBData() {
     randomNumber: randomNumber,
     highestNumberArray: highestNumberArray,
     lowestNUmberArray: lowestNUmberArray,
+    startingNumberArray: startingNumberArray,
   };
 }
 
