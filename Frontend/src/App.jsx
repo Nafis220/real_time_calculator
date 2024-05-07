@@ -19,7 +19,7 @@ const App = () => {
       });
       socket.on("five-minute-data", (data) => {
         console.log(data);
-        setFiveMinutesData([data.candleData]); // No need for arrow function here
+        setFiveMinutesData([data.candleData]);
       });
     } else {
       socket.emit("timeToWatch", 1200);
@@ -55,6 +55,7 @@ const App = () => {
       <h2>Current Rate: {realTimeChange.result}</h2>
       <h3>Highest Rate:{realTimeChange.highestNumber}</h3>
       <h3>Lowest Rate: {realTimeChange.lowestNumber} </h3>
+      <h3>Starting Price {realTimeChange.startingNumber} </h3>
       <h1>Get the previous Five Mintes Data</h1>
       {fiveMinutesData.length > 0 &&
         fiveMinutesData.map((data, index) => (
@@ -77,6 +78,7 @@ const App = () => {
                     <h2>Current Rate: {realData.currentRate}</h2>
                     <h2>Highest Rate: {realData.highestRate}</h2>
                     <h2>Lowest Rate: {realData.lowestRate}</h2>
+                    <h2>Starting Price {realData.startingNumber} </h2>
                     <br />
                   </div>
                 )}
